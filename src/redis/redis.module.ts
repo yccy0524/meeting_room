@@ -2,12 +2,13 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 15:36:35
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-10 16:00:01
+ * @LastEditTime: 2024-07-13 22:52:27
  * @Description:
  */
 import { Global, Module } from '@nestjs/common';
 import { RedisService } from './redis.service';
 import { createClient } from 'redis';
+import { ConfigService } from '@nestjs/config';
 
 @Global()
 @Module({
@@ -15,17 +16,23 @@ import { createClient } from 'redis';
     RedisService,
     {
       provide: 'REDIS_CLIENT',
-      async useFactory() {
+      async useFactory(configService: ConfigService) {
+        console.log(
+          'host---',
+          configService.get('redis_server_host'),
+          configService.get('redis_server_port'),
+        );
         const client = createClient({
           socket: {
-            host: 'localhost',
-            port: 6379,
+            host: configService.get('redis_server_host'),
+            port: configService.get('redis_server_port'),
           },
           database: 1,
         });
         await client.connect();
         return client;
       },
+      inject: [ConfigService],
     },
   ],
   exports: [RedisService],

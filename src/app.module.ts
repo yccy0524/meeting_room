@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:37:39
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-10 10:38:33
+ * @LastEditTime: 2024-07-13 22:47:46
  * @Description:
  */
 import { Module } from '@nestjs/common';
@@ -15,6 +15,7 @@ import { Role } from './user/entities/role.entity';
 import { Permission } from './user/entities/permission.entity';
 import { RedisModule } from './redis/redis.module';
 import { EmailModule } from './email/email.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -37,6 +38,10 @@ import { EmailModule } from './email/email.module';
     UserModule,
     RedisModule,
     EmailModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: 'src/.env',
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
