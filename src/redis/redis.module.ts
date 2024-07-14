@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 15:36:35
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-13 22:52:27
+ * @LastEditTime: 2024-07-14 21:17:21
  * @Description:
  */
 import { Global, Module } from '@nestjs/common';
@@ -27,7 +27,7 @@ import { ConfigService } from '@nestjs/config';
             host: configService.get('redis_server_host'),
             port: configService.get('redis_server_port'),
           },
-          database: 1,
+          database: configService.get('redis_server_db'),
         });
         await client.connect();
         return client;

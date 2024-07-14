@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:49:56
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-10 16:10:02
+ * @LastEditTime: 2024-07-14 22:30:54
  * @Description:
  */
 import {
@@ -18,6 +18,8 @@ import { Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register.user.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { md5 } from 'src/utils/util';
+import { LoginUserDto } from './dto/login-user.dto';
+import { LoginUserVo } from './vo/login-user.vo';
 
 @Injectable()
 export class UserService {
@@ -62,5 +64,47 @@ export class UserService {
       this.logger.error(e, UserService);
       return '注册失败';
     }
+  }
+
+  async login(loginUser: LoginUserDto, isAdmin: boolean) {
+    const foundUser = await this.userRepository.findOne({
+      where: {
+        username: loginUser.username,
+        isAdmin,
+      },
+      relations: ['roles', 'roles.permissions'],
+    });
+
+    if (!foundUser) {
+      throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    if (foundUser.password !== md5(loginUser.password)) {
+      return new HttpException('密码不正确', HttpStatus.BAD_REQUEST);
+    }
+
+    const vo = new LoginUserVo();
+    vo.userInfo = {
+      id: foundUser.id,
+      username: foundUser.username,
+      nickName: foundUser.nickName,
+      email: foundUser.email,
+      phoneNumber: foundUser.phoneNumber,
+      headPic: foundUser.headPic,
+      createTime: foundUser.createTime,
+      isFrozen: foundUser.isFrozen,
+      isAdmin: foundUser.isAdmin,
+      roles: foundUser.roles.map((item) => item.name),
+      permissions: foundUser.roles.reduce((arr, item) => {
+        item.permissions.forEach((permission) => {
+          if (arr.indexOf(permission) === -1) {
+            arr.push(permission);
+          }
+        });
+        return arr;
+      }, []),
+    };
+
+    return vo;
   }
 }

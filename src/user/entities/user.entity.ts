@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:52:11
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-10 10:35:24
+ * @LastEditTime: 2024-07-14 21:45:34
  * @Description:
  */
 import {
@@ -67,6 +67,12 @@ export class User {
     default: false,
   })
   isFrozen: boolean;
+
+  @Column({
+    comment: '是否是管理员',
+    default: false,
+  })
+  isAdmin: boolean;
 
   @CreateDateColumn({
     comment: '创建时间',
