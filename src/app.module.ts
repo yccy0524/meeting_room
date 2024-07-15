@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:37:39
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-14 21:29:04
+ * @LastEditTime: 2024-07-15 21:55:47
  * @Description:
  */
 import { Module } from '@nestjs/common';
@@ -16,6 +16,7 @@ import { Permission } from './user/entities/permission.entity';
 import { RedisModule } from './redis/redis.module';
 import { EmailModule } from './email/email.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -39,6 +40,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
           },
         };
       },
+    }),
+    JwtModule.registerAsync({
+      global: true,
+      useFactory(configService: ConfigService) {
+        return {
+          secret: configService.get('jwt_secret'),
+          signOptions: {
+            expiresIn: configService.get('jwt_access_token_expires_time'),
+          },
+        };
+      },
+      inject: [ConfigService],
     }),
     UserModule,
     RedisModule,

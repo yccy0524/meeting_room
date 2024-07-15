@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:49:56
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-14 22:30:54
+ * @LastEditTime: 2024-07-15 22:56:52
  * @Description:
  */
 import {
@@ -106,5 +106,29 @@ export class UserService {
     };
 
     return vo;
+  }
+
+  async findUserById(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+      relations: ['roles', 'roles.permissions'],
+    });
+
+    return {
+      id: user.id,
+      username: user.username,
+      isAdmin: user.isAdmin,
+      roles: user.roles.map((item) => item.name),
+      permissions: user.roles.reduce((arr, item) => {
+        item.permissions.forEach((permission) => {
+          if (arr.indexOf(permission) === -1) {
+            arr.push(permission);
+          }
+        });
+        return arr;
+      }, []),
+    };
   }
 }
