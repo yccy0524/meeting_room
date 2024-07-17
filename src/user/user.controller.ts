@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:49:56
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-15 22:58:27
+ * @LastEditTime: 2024-07-16 22:59:41
  * @Description:
  */
 import {
@@ -28,6 +28,9 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserVo } from './vo/login-user.vo';
 import { ConfigService } from '@nestjs/config';
+import { RequireLogin, UserInfo } from 'src/decorator/custom.decorator';
+import { UserDetailVo } from './vo/user-info.vo';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('user')
 export class UserController {
@@ -207,5 +210,31 @@ export class UserController {
       console.log('err', err);
       throw new UnauthorizedException('token已失效，请重新登录');
     }
+  }
+
+  @Get('info')
+  @RequireLogin()
+  async getUserInfo(@UserInfo('userId') userId: number) {
+    const user = await this.userService.findUserDetailById(userId);
+    const vo = new UserDetailVo();
+    vo.id = user.id;
+    vo.nickName = user.nickName;
+    vo.username = user.username;
+    vo.headPic = user.headPic;
+    vo.phoneNumber = user.phoneNumber;
+    vo.email = user.email;
+    vo.isFrozen = user.isFrozen;
+    vo.createTime = user.createTime;
+
+    return vo;
+  }
+
+  @Post(['update_password', 'admin/update_password'])
+  @RequireLogin()
+  async updatePassword(
+    @UserInfo('userId') userId: number,
+    @Body() passwordDto: UpdatePasswordDto,
+  ) {
+    return await this.userService.updatePassword(userId, passwordDto);
   }
 }

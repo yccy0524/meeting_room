@@ -2,10 +2,11 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:49:56
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-15 22:56:52
+ * @LastEditTime: 2024-07-16 23:03:25
  * @Description:
  */
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Inject,
@@ -20,6 +21,7 @@ import { RedisService } from 'src/redis/redis.service';
 import { md5 } from 'src/utils/util';
 import { LoginUserDto } from './dto/login-user.dto';
 import { LoginUserVo } from './vo/login-user.vo';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UserService {
@@ -67,6 +69,7 @@ export class UserService {
   }
 
   async login(loginUser: LoginUserDto, isAdmin: boolean) {
+    this.logger.debug(`login-------->${JSON.stringify(loginUser)} ${isAdmin}`);
     const foundUser = await this.userRepository.findOne({
       where: {
         username: loginUser.username,
@@ -74,6 +77,7 @@ export class UserService {
       },
       relations: ['roles', 'roles.permissions'],
     });
+    this.logger.debug(`login-------->${JSON.stringify(foundUser)}`);
 
     if (!foundUser) {
       throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
@@ -130,5 +134,39 @@ export class UserService {
         return arr;
       }, []),
     };
+  }
+
+  async findUserDetailById(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    return user;
+  }
+
+  async updatePassword(userId: number, passwordDto: UpdatePasswordDto) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
+
+    const captcha = await this.redisService.get(`captcha_${passwordDto.email}`);
+    if (passwordDto.captcha !== captcha) {
+      throw new BadRequestException('验证码不正确');
+    }
+
+    if (!user) {
+      throw new BadRequestException('用户不存在');
+    }
+
+    user.password = md5(passwordDto.password);
+    try {
+      await this.userRepository.save(user);
+      return '密码修改成功';
+    } catch (err) {
+      this.logger.error(err, UserService);
+      return '密码修改失败';
+    }
   }
 }

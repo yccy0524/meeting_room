@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-15 23:01:24
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-16 18:01:25
+ * @LastEditTime: 2024-07-16 21:38:25
  * @Description:
  */
 import {
@@ -25,6 +25,9 @@ export class PermissionGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request: Request = context.switchToHttp().getRequest();
+    if (!request.user) {
+      return true;
+    }
     const permissions = request.user.permissions;
 
     const requirePermissions = this.reflector.getAllAndOverride(
