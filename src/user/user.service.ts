@@ -22,6 +22,7 @@ import { md5 } from 'src/utils/util';
 import { LoginUserDto } from './dto/login-user.dto';
 import { LoginUserVo } from './vo/login-user.vo';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -167,6 +168,35 @@ export class UserService {
     } catch (err) {
       this.logger.error(err, UserService);
       return '密码修改失败';
+    }
+  }
+
+  async updateUserInfo(userId: number, updateUserDto: UpdateUserDto) {
+    const captcha = await this.redisService.get(
+      `captcha_${updateUserDto.email}`,
+    );
+    if (captcha !== updateUserDto.captcha) {
+      return new HttpException('验证码不正确', HttpStatus.BAD_REQUEST);
+    }
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      return new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    user.headPic = updateUserDto.headPic;
+    user.nickName = updateUserDto.nickName;
+
+    try {
+      await this.userRepository.save(user);
+      return '修改成功';
+    } catch (err) {
+      this.logger.error(err, UserService);
+      return '修改失败';
     }
   }
 }

@@ -31,6 +31,7 @@ import { ConfigService } from '@nestjs/config';
 import { RequireLogin, UserInfo } from 'src/decorator/custom.decorator';
 import { UserDetailVo } from './vo/user-info.vo';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -61,19 +62,6 @@ export class UserController {
   async register(@Body() registerUser: RegisterUserDto) {
     console.log('registerUser---', registerUser);
     return await this.userService.register(registerUser);
-  }
-
-  @Get('register-captcha')
-  async captcha(@Query('address') address: string) {
-    const code = Math.random().toString().slice(2, 8);
-    await this.redisService.set(`captcha_${address}`, code, 5 * 60);
-    await this.emailService.sendEmail({
-      to: address,
-      subject: '注册验证码',
-      html: `验证码：${code}`,
-    });
-
-    return '发送成功';
   }
 
   @Get('init-data')
@@ -236,5 +224,27 @@ export class UserController {
     @Body() passwordDto: UpdatePasswordDto,
   ) {
     return await this.userService.updatePassword(userId, passwordDto);
+  }
+
+  @Get('captcha')
+  async getPassword(@Query('address') address: string) {
+    const code = Math.random().toString().slice(2, 8);
+    await this.redisService.set(`captcha_${address}`, code, 10 * 60);
+    await this.emailService.sendEmail({
+      to: address,
+      subject: '邮箱验证码',
+      html: `<p>您的验证码是 ${code}</p>`,
+    });
+
+    return '发送成功';
+  }
+
+  @Post(['update', 'admin/update'])
+  @RequireLogin()
+  async updateUserInfo(
+    @UserInfo('uid') userId: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return await this.userService.updateUserInfo(userId, updateUserDto);
   }
 }
