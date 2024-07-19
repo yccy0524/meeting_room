@@ -11,11 +11,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FormatResponseInterceptor } from './format-response.interceptor';
 import { InvokeRecordInterceptor } from './invoke-record.interceptor';
+import { CustomExceptionFilter } from './custom-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalFilters(new CustomExceptionFilter());
   app.useGlobalInterceptors(new FormatResponseInterceptor());
   app.useGlobalInterceptors(new InvokeRecordInterceptor());
   await app.listen(configService.get('nest_server_port'));

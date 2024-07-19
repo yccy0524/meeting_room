@@ -85,7 +85,7 @@ export class UserService {
     }
 
     if (foundUser.password !== md5(loginUser.password)) {
-      return new HttpException('密码不正确', HttpStatus.BAD_REQUEST);
+      throw new HttpException('密码不正确', HttpStatus.BAD_REQUEST);
     }
 
     const vo = new LoginUserVo();
@@ -176,7 +176,8 @@ export class UserService {
       `captcha_${updateUserDto.email}`,
     );
     if (captcha !== updateUserDto.captcha) {
-      return new HttpException('验证码不正确', HttpStatus.BAD_REQUEST);
+      console.error('验证码不正确----------------');
+      throw new HttpException('验证码不正确', HttpStatus.BAD_REQUEST);
     }
     const user = await this.userRepository.findOne({
       where: {
@@ -185,7 +186,7 @@ export class UserService {
     });
 
     if (!user) {
-      return new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
+      throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
     }
 
     user.headPic = updateUserDto.headPic;
