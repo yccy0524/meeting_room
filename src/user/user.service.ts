@@ -200,4 +200,15 @@ export class UserService {
       return '修改失败';
     }
   }
+
+  // 冻结
+  async freezeUserById(userId: number) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
+
+    user.isFrozen = true;
+
+    await this.userRepository.save(user);
+  }
 }
