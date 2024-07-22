@@ -10,6 +10,7 @@ import {
   Controller,
   Get,
   Inject,
+  ParseIntPipe,
   Post,
   Query,
   UnauthorizedException,
@@ -253,4 +254,10 @@ export class UserController {
     await this.userService.freezeUserById(userId);
     return 'success';
   }
+
+  @Get('list')
+  async getUserList(
+    @Query('pageNum', ParseIntPipe) pageNum: number,
+    @Query('pageSize', ParseIntPipe) pageSize: number,
+  ) {}
 }
