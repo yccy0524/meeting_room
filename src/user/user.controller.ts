@@ -2,15 +2,15 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:49:56
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-16 22:59:41
+ * @LastEditTime: 2024-07-22 22:53:42
  * @Description:
  */
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   Inject,
-  ParseIntPipe,
   Post,
   Query,
   UnauthorizedException,
@@ -24,7 +24,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
-import { md5 } from 'src/utils/util';
+import { generateParseIntPipe, md5 } from 'src/utils/util';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserVo } from './vo/login-user.vo';
@@ -33,7 +33,9 @@ import { RequireLogin, UserInfo } from 'src/decorator/custom.decorator';
 import { UserDetailVo } from './vo/user-info.vo';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('用户管理模块')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -227,6 +229,13 @@ export class UserController {
     return await this.userService.updatePassword(userId, passwordDto);
   }
 
+  @ApiQuery({
+    name: 'address',
+    type: String,
+    description: '邮箱地址',
+    required: true,
+    example: 'xxx@xx.com',
+  })
   @Get('captcha')
   async getPassword(@Query('address') address: string) {
     const code = Math.random().toString().slice(2, 8);
@@ -257,7 +266,24 @@ export class UserController {
 
   @Get('list')
   async getUserList(
-    @Query('pageNum', ParseIntPipe) pageNum: number,
-    @Query('pageSize', ParseIntPipe) pageSize: number,
-  ) {}
+    @Query('pageNum', new DefaultValuePipe(1), generateParseIntPipe('pageNum'))
+    pageNum: number,
+    @Query(
+      'pageSize',
+      new DefaultValuePipe(2),
+      generateParseIntPipe('pageSize'),
+    )
+    pageSize: number,
+    @Query('nickName') nickName: string,
+    @Query('username') username: string,
+    @Query('email') email: string,
+  ) {
+    return await this.userService.getUserList(
+      pageNum,
+      pageSize,
+      nickName,
+      username,
+      email,
+    );
+  }
 }
