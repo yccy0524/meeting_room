@@ -211,4 +211,13 @@ export class UserService {
 
     await this.userRepository.save(user);
   }
+
+  // 获取用户列表
+  async getUserList(pageNum: number, pageSize: number) {
+    const skipCount = (pageNum - 1) * pageSize;
+    const [users, totalCount] = await this.userRepository.findAndCount({
+      skip: skipCount,
+      take: pageSize,
+    });
+  }
 }
