@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:49:56
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-22 22:53:42
+ * @LastEditTime: 2024-07-23 15:59:27
  * @Description:
  */
 import {
@@ -10,6 +10,7 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
+  HttpStatus,
   Inject,
   Post,
   Query,
@@ -33,7 +34,7 @@ import { RequireLogin, UserInfo } from 'src/decorator/custom.decorator';
 import { UserDetailVo } from './vo/user-info.vo';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('用户管理模块')
 @Controller('user')
@@ -62,8 +63,20 @@ export class UserController {
   private permissionRepository: Repository<Permission>;
 
   @Post('register')
+  @ApiBody({
+    type: RegisterUserDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: '验证码已失效/验证码不正确/用户已存在',
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: '注册成功/失败',
+    type: String,
+  })
   async register(@Body() registerUser: RegisterUserDto) {
-    console.log('registerUser---', registerUser);
     return await this.userService.register(registerUser);
   }
 
@@ -109,6 +122,19 @@ export class UserController {
   }
 
   @Post('login')
+  @ApiBody({
+    type: LoginUserDto,
+  })
+  @ApiResponse({
+    type: String,
+    description: '用户不存在/密码错误',
+    status: HttpStatus.BAD_REQUEST,
+  })
+  @ApiResponse({
+    type: LoginUserVo,
+    status: HttpStatus.OK,
+    description: '用户信息和token',
+  })
   async userLogin(@Body() loginUser: LoginUserDto) {
     const vo = (await this.userService.login(loginUser, false)) as LoginUserVo;
     vo.accessToken = this.jwtService.sign(
@@ -235,6 +261,11 @@ export class UserController {
     description: '邮箱地址',
     required: true,
     example: 'xxx@xx.com',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: String,
+    description: '发送成功',
   })
   @Get('captcha')
   async getPassword(@Query('address') address: string) {
