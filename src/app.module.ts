@@ -20,6 +20,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { LoginGuard } from './login.guard';
 import { PermissionGuard } from './permission.guard';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -61,7 +62,7 @@ import { PermissionGuard } from './permission.guard';
     EmailModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: 'src/.env',
+      envFilePath: path.resolve(__dirname, '.env'),
     }),
   ],
   controllers: [AppController],
