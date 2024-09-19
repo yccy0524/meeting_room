@@ -2,7 +2,7 @@
  * @Author: yancheng 404174228@qq.com
  * @Date: 2024-07-10 09:37:39
  * @LastEditors: yancheng 404174228@qq.com
- * @LastEditTime: 2024-07-22 22:47:52
+ * @LastEditTime: 2024-07-24 21:40:10
  * @Description:
  */
 import { NestFactory } from '@nestjs/core';
@@ -17,6 +17,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new CustomExceptionFilter());
   app.useGlobalInterceptors(new FormatResponseInterceptor());
